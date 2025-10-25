@@ -63,3 +63,42 @@ export const authorizeRoles = (...allowedRoles) => {
     next();
   };
 };
+
+
+// 🟢 NEW: OPTIONAL PROTECT MIDDLEWARE
+// Tries to extract the user from the token but does NOT throw an error if the token is invalid or missing.
+// It sets req.user if successful, allowing the controller to check both req.user (logged-in) and req.body (guest).
+export const optionalProtect = asyncHandler(async (req, res, next) => {
+    let token;
+
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer')
+    ) {
+        try {
+            // Get token from header
+            token = req.headers.authorization.split(' ')[1];
+
+            // Verify token and get user id
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            // Fetch user but exclude password
+            req.user = await User.findById(decoded.id).select('-password');
+
+            // If user is found, proceed to next middleware/controller
+            next();
+
+        } catch (error) {
+            // If token verification fails (e.g., expired or invalid), 
+            // OR if no user is found, just log the error and proceed as guest.
+            // console.error('Optional Protect Token Error:', error.message); 
+            // No need to throw an error or send a 401 response here.
+            req.user = null; 
+            next();
+        }
+    } else {
+        // No token provided, proceed as guest
+        req.user = null;
+        next();
+    }
+});

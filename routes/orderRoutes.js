@@ -1,4 +1,3 @@
-// /routes/orderRoutes.js 
 import express from 'express';
 import {
   addOrderItems,
@@ -6,33 +5,33 @@ import {
   getMyOrders,
   verifyPaystackPayment,
   updateOrderStatus,
-  deleteOrder, // ✅ Correctly imported
+  deleteOrder, 
 } from '../controllers/orderController.js';
-import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
+// 🟢 MODIFIED: Assume `optionalProtect` is now available in authMiddleware.js
+import { protect, authorizeRoles, optionalProtect } from '../middleware/authMiddleware.js'; 
 
 const router = express.Router();
 
 // ----------------------------------------------------
-// 1. PUBLIC ROUTE – Paystack Callback Verification
+// 1. PUBLIC ROUTE – Paystack Callback Verification (unmodified)
 // ----------------------------------------------------
 router.route('/paystack/verify/:reference').get(verifyPaystackPayment);
 
 // ----------------------------------------------------
-// 2. USER ROUTES (Protected)
+// 2. USER/GUEST ROUTES 
 // ----------------------------------------------------
-// User creates a new order
-router.route('/').post(protect, addOrderItems);
+// 🟢 MODIFIED: Allows both logged-in users and guests to post an order.
+router.route('/').post(optionalProtect, addOrderItems); 
 
-// User views their own orders
+// User views their own orders (Must be logged in)
 router.route('/myorders').get(protect, getMyOrders);
 
-// 🟢 NEW: User deletes a specific order by ID (e.g., /api/orders/:id)
-// This route is correctly defined and protected.
+// User deletes a specific order by ID (Must be logged in)
 router.route('/:id').delete(protect, deleteOrder);
 
 
 // ----------------------------------------------------
-// 3. ADMIN ROUTES (Protected + Role Restricted)
+// 3. ADMIN ROUTES (Protected + Role Restricted - unmodified)
 // ----------------------------------------------------
 // Admin views all orders (with user details)
 router.route('/admin').get(protect, authorizeRoles('admin'), getOrders);
