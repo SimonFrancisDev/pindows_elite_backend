@@ -94,8 +94,8 @@ const productSchema = new mongoose.Schema(
 // 2️⃣ Pre-save hook: automatically handle flash sale logic before saving
 productSchema.pre('save', function (next) {
   if (this.flashSale) {
-    // Calculate 10% discount
-    this.discountPrice = this.price - this.price * 0.1;
+    // Calculate 20% discount
+    this.discountPrice = this.price - this.price * 0.20;
 
     // Set expiration (3 weeks from now)
     if (!this.discountExpires) {
